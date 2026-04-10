@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/x-icon" href="./brainwarelogo.png">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Table & Graph Explanation Tool | AI</title>
+    <style>
+        :root {
+            --bg-color: #0b1120;
+            --panel-bg: rgba(30, 41, 59, 0.7);
+            --accent-cyan: #22d3ee;
+            --accent-purple: #c084fc;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --border-color: rgba(255, 255, 255, 0.1);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* Animated Background Nodes */
+        .bg-animation {
+            position: fixed;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            z-index: -1;
+            background: 
+                radial-gradient(circle at 15% 50%, rgba(34, 211, 238, 0.08) 0%, transparent 50%),
+                radial-gradient(circle at 85% 30%, rgba(192, 132, 252, 0.08) 0%, transparent 50%);
+            background-size: cover;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 800px;
+            margin: 40px auto;
+            padding: 2rem;
+            background: var(--panel-bg);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+        }
+
+        /* Header Styles */
+        header {
+            text-align: center;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 1.5rem;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            background: linear-gradient(to right, var(--accent-cyan), var(--accent-purple));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 0.5rem;
+        }
+
+        .catchy {
+            font-size: 1.1rem;
+            font-style: italic;
+            color: var(--accent-cyan);
+            margin-bottom: 1rem;
+            letter-spacing: 1px;
+        }
+
+        .typewriter-container {
+            font-size: 1.2rem;
+            height: 30px; /* Fixed height to prevent layout shift */
+            color: var(--text-main);
+            margin-bottom: 1rem;
+        }
+
+        .cursor {
+            display: inline-block;
+            width: 3px;
+            height: 1.2rem;
+            background-color: var(--accent-purple);
+            animation: blink 0.8s infinite;
+            vertical-align: text-bottom;
+        }
+
+        .developer {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0; }
+        }
+
+        /* Form Controls */
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        label {
+            font-weight: 600;
+            color: var(--accent-cyan);
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        input[type="password"] {
+            width: 100%;
+            padding: 12px 16px;
+            border-radius: 8px;
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid var(--border-color);
+            color: white;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        input[type="password"]:focus {
+            outline: none;
+            border-color: var(--accent-purple);
+            box-shadow: 0 0 10px rgba(192, 132, 252, 0.2);
+        }
+
+        /* Custom File Upload */
+        input[type="file"] {
+            display: none;
+        }
+
+        .file-label {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+            border: 2px dashed var(--border-color);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            color: var(--text-muted);
+            text-transform: none;
+            letter-spacing: normal;
+        }
+
+        .file-label:hover {
+            border-color: var(--accent-cyan);
+            background: rgba(34, 211, 238, 0.05);
+            color: var(--accent-cyan);
+        }
+
+        /* Action Button */
+        button {
+            background: linear-gradient(135deg, var(--accent-cyan) 0%, var(--accent-purple) 100%);
+            color: #fff;
+            border: none;
+            padding: 14px 24px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            width: 100%;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(192, 132, 252, 0.3);
+        }
+
+        button:disabled {
+            background: var(--text-muted);
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        /* Output Area */
+        #result-container {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1.5rem;
+            display: none;
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        #result-text {
+            line-height: 1.6;
+            color: #e2e8f0;
+        }
+
+        #result-text h3, #result-text h4 { color: var(--accent-cyan); margin: 1rem 0 0.5rem 0;}
+        #result-text ul { padding-left: 1.5rem; margin-bottom: 1rem; }
+        #result-text li { margin-bottom: 0.3rem; }
+        #result-text p { margin-bottom: 1rem; }
+
+        /* Loader */
+        .loader-container {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            gap: 1rem;
+            padding: 2rem 0;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid rgba(255,255,255,0.1);
+            border-left-color: var(--accent-cyan);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* Footer */
+        footer {
+            margin-top: auto;
+            text-align: center;
+            padding: 1.5rem;
+            border-top: 1px solid var(--border-color);
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            width: 100%;
+        }
+        
+        footer p { margin-bottom: 0.3rem; }
+        .highlight { color: var(--accent-purple); font-weight: 600; }
+
+        /* Responsive */
+        @media (max-width: 600px) {
+            .container { margin: 20px 10px; padding: 1.5rem; border-radius: 12px; }
+            h1 { font-size: 1.8rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="bg-animation"></div>
+
+    <div class="container">
+        <header>
+            <h1>Table & Graph Explanation Tool</h1>
+            <div class="catchy">Unlock the hidden stories inside your data.</div>
+            <div class="typewriter-container">
+                <span id="type-text"></span><span class="cursor"></span>
+            </div>
+            <p class="developer">Developed by <b>Samrat Sarkar</b></p>
+        </header>
+
+        <main style="display: flex; flex-direction: column; gap: 1.5rem;">
+            
+            <div class="input-group">
+                <label for="api-key">Gemini 2.5 Flash API Key</label>
+                <input type="password" id="api-key" placeholder="Enter API Key securely here..." autocomplete="off">
+            </div>
+
+            <div class="input-group">
+                <label for="image-upload">Data Source (Image)</label>
+                <label for="image-upload" class="file-label" id="drop-zone">
+                    <span id="file-name-display">Click to upload or drag & drop a Chart/Table image</span>
+                </label>
+                <input type="file" id="image-upload" accept="image/png, image/jpeg, image/webp">
+            </div>
+
+            <button id="analyze-btn">Analyze Data ✨</button>
+
+            <div class="loader-container" id="loader">
+                <div class="spinner"></div>
+                <p id="loader-text" style="color: var(--accent-cyan); font-weight: 600;">AI Engine Processing Visuo-Spatial Data...</p>
+            </div>
+
+            <div id="result-container">
+                <h2 style="color: var(--accent-purple); margin-bottom: 1rem; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 0.5rem;">AI Analysis</h2>
+                <div id="result-text"></div>
+            </div>
+
+        </main>
+    </div>
+
+    <footer>
+        <p>This project is developed under the guidance of <span class="highlight">Mr. Samudranil Maity</span></p>
+        <p>Department of <span class="highlight">Cyber Science and Technology</span></p>
+        <p>Brainware University</p>
+    </footer>
+
+    <script>
+        // --- 1. Typing / Deleting Animation Logic ---
+        const textArray = [
+            "Upload any complex graph.",
+            "Analyze dense data tables.",
+            "Get instant AI-powered explanations.",
+            "Democratize your data."
+        ];
+        let textIndex = 0;
+        let charIndex = 0;
+        let isDeleting = false;
+        const typeTarget = document.getElementById("type-text");
+
+        function typeWriter() {
+            const currentText = textArray[textIndex];
+            
+            if (isDeleting) {
+                typeTarget.textContent = currentText.substring(0, charIndex - 1);
+                charIndex--;
+            } else {
+                typeTarget.textContent = currentText.substring(0, charIndex + 1);
+                charIndex++;
+            }
+
+            let typeSpeed = isDeleting ? 40 : 80;
+
+            // Pause at the end of typing a word
+            if (!isDeleting && charIndex === currentText.length) {
+                typeSpeed = 1500; // Pause before deleting
+                isDeleting = true;
+            } 
+            // Pause at the end of deleting a word
+            else if (isDeleting && charIndex === 0) {
+                isDeleting = false;
+                textIndex = (textIndex + 1) % textArray.length; // Move to next word
+                typeSpeed = 500; // Pause before typing next
+            }
+
+            setTimeout(typeWriter, typeSpeed);
+        }
+
+        // Start typing animation
+        window.onload = () => setTimeout(typeWriter, 1000);
+
+
+        // --- 2. File Upload UI Handler ---
+        const fileInput = document.getElementById('image-upload');
+        const fileNameDisplay = document.getElementById('file-name-display');
+        let base64Image = null;
+        let mimeType = null;
+
+        fileInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                fileNameDisplay.textContent = `Selected: ${file.name}`;
+                fileNameDisplay.style.color = 'var(--accent-purple)';
+                
+                const reader = new FileReader();
+                reader.onload = function(readerEvent) {
+                    // Extract base64 and mime type
+                    const dataUrl = readerEvent.target.result;
+                    mimeType = dataUrl.split(';')[0].split(':')[1];
+                    base64Image = dataUrl.split(',')[1];
+                }
+                reader.readAsDataURL(file);
+            } else {
+                fileNameDisplay.textContent = "Click to upload or drag & drop a Chart/Table image";
+                fileNameDisplay.style.color = 'var(--text-muted)';
+                base64Image = null;
+            }
+        });
+
+
+        // --- 3. Gemini API Interaction Logic ---
+        const analyzeBtn = document.getElementById('analyze-btn');
+        const loader = document.getElementById('loader');
+        const resultContainer = document.getElementById('result-container');
+        const resultText = document.getElementById('result-text');
+
+        // Simple Markdown to HTML parser for standard AI output
+        function formatMarkdown(text) {
+            let html = text
+                // Headers
+                .replace(/^### (.*$)/gim, '<h4>$1</h4>')
+                .replace(/^## (.*$)/gim, '<h3>$1</h3>')
+                // Bold
+                .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                // Bullet points
+                .replace(/^\* (.*$)/gim, '<li>$1</li>')
+                // Wrap stray list items in ul
+                .replace(/<li>.*<\/li>/s, match => `<ul>${match}</ul>`)
+                // New lines
+                .replace(/\n\n/g, '<p></p>')
+                .replace(/\n/g, '<br>');
+            return html;
+        }
+
+        analyzeBtn.addEventListener('click', async () => {
+            const apiKey = document.getElementById('api-key').value.trim();
+            
+            if (!apiKey) {
+                alert("Please enter your Gemini API Key.");
+                return;
+            }
+            if (!base64Image) {
+                alert("Please upload an image of a table or graph first.");
+                return;
+            }
+
+            // UI State change
+            analyzeBtn.disabled = true;
+            analyzeBtn.textContent = "Processing...";
+            loader.style.display = "flex";
+            resultContainer.style.display = "none";
+
+            // Gemini 2.5 Flash Endpoint
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
+
+            const systemPrompt = `You are an expert data analyst. Examine the provided image of a table or graph. 
+            Provide a clear, detailed, and structured explanation of what the data shows. 
+            Include the overarching trend, highest/lowest points, and any notable anomalies. 
+            Use formatting like bolding and bullet points to make it readable for a non-technical audience.`;
+
+            const requestBody = {
+                contents: [{
+                    parts: [
+                        { text: systemPrompt },
+                        {
+                            inline_data: {
+                                mime_type: mimeType,
+                                data: base64Image
+                            }
+                        }
+                    ]
+                }]
+            };
+
+            try {
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(requestBody)
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error?.message || "API Request Failed");
+                }
+
+                const data = await response.json();
+                const aiText = data.candidates[0].content.parts[0].text;
+                
+                // Display Results
+                resultText.innerHTML = formatMarkdown(aiText);
+                resultContainer.style.display = "block";
+
+            } catch (error) {
+                console.error(error);
+                resultText.innerHTML = `<p style="color: #ef4444;"><strong>Error:</strong> ${error.message}. Please check your API key and try again.</p>`;
+                resultContainer.style.display = "block";
+            } finally {
+                // Restore UI State
+                analyzeBtn.disabled = false;
+                analyzeBtn.textContent = "Analyze Data ✨";
+                loader.style.display = "none";
+            }
+        });
+    </script>
+</body>
+</html>
